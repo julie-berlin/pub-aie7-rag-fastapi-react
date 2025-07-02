@@ -7,7 +7,15 @@ from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
 import os
+import sys
 from typing import Optional
+
+# Add parent directory to path for aimakerspace imports
+# This works for both local development and Vercel deployment
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="OpenAI Chat API")
