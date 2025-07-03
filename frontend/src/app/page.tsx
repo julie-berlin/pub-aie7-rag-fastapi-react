@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { chatRequest, uploadPdfRequest } from '@/lib/api-client';
+import { chatRequest, uploadPdfRequest } from '@/utils/api-client';
 
 interface Message {
   id: string;
