@@ -45,7 +45,9 @@ export default function Home() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to upload PDF');
+          const errorText = await response.text();
+          console.error('Backend error:', errorText);
+          throw new Error(`Upload failed: ${errorText}`);
         }
 
         const result = await response.json();
@@ -61,7 +63,8 @@ export default function Home() {
         setDocuments(prev => [...prev, newDoc]);
       } catch (error) {
         console.error('Error uploading PDF:', error);
-        alert('Failed to upload PDF. Please try again.');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert(`Failed to upload PDF: ${errorMessage}`);
       }
     } else {
       // Handle text file
