@@ -41,6 +41,9 @@ export default function Home() {
       try {
         const response = await fetch('/api/upload-pdf', {
           method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+          },
           body: formData,
         });
 

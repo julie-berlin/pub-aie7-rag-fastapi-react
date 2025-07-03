@@ -11,13 +11,13 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 # Import required FastAPI components for building the API
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Header
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 # Import Pydantic for data validation and settings management
 from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 # Import aimakerspace components for RAG (after path setup)
 from aimakerspace.vectordatabase import VectorDatabase
 from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
@@ -107,8 +107,12 @@ async def chat(request: ChatRequest):
 
 # Define PDF upload endpoint for indexing documents
 @app.post("/api/upload-pdf")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(file: UploadFile = File(...), authorization: str = Header(...)):
     try:
+        # Extract API key from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        api_key = authorization.replace("Bearer ", "")
         # Validate file type
         if not file.filename or not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
@@ -126,9 +130,21 @@ async def upload_pdf(file: UploadFile = File(...)):
         # Split text into chunks
         chunks = text_splitter.split_texts(documents)
         
-        # Add chunks to vector database
-        db = get_vector_db()
+        # Add chunks to vector database with provided API key
+        from aimakerspace.openai_utils.embedding import EmbeddingModel
+        
+        print(f"Creating embedding model with API key: {api_key[:10]}...")
+        
+        # Create embedding model with the provided API key
+        embedding_model = EmbeddingModel(api_key=api_key)
+        print("Embedding model created successfully")
+        
+        # Create vector database with the embedding model
+        db = VectorDatabase(embedding_model=embedding_model)
+        print(f"Processing {len(chunks)} chunks")
+        
         await db.abuild_from_list(chunks)
+        print("Vector database build completed")
         
         # Clean up temporary file
         import os
