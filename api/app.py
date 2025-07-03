@@ -1,3 +1,15 @@
+import os
+import sys
+import tempfile
+from typing import Optional
+
+# Add parent directory to path for aimakerspace imports BEFORE other imports
+# This works for both local development and Vercel deployment
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
 # Import required FastAPI components for building the API
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
@@ -6,22 +18,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
 from openai import OpenAI
-# Import aimakerspace components for RAG
+# Import aimakerspace components for RAG (after path setup)
 from aimakerspace.vectordatabase import VectorDatabase
 from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
-from aimakerspace.openai_utils.embedding import EmbeddingModel
-import tempfile
-import asyncio
-import os
-import sys
-from typing import Optional
-
-# Add parent directory to path for aimakerspace imports
-# This works for both local development and Vercel deployment
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-if parent_dir not in sys.path:
-    sys.path.insert(0, parent_dir)
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="The Information - RAG Chat API")
@@ -37,13 +36,16 @@ def get_vector_db():
     return vector_db
 
 # Configure CORS (Cross-Origin Resource Sharing) middleware
-# This allows the API to be accessed from different domains/origins
+# Only allow requests from localhost (dev) and Vercel (production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows requests from any origin
-    allow_credentials=True,  # Allows cookies to be included in requests
-    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allows all headers in requests
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "https://*.vercel.app",   # Vercel production/preview
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
 )
 
 # Define the data model for chat requests using Pydantic
@@ -144,8 +146,9 @@ async def upload_pdf(file: UploadFile = File(...)):
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
 async def health_check():
-    db = get_vector_db()
-    return {"status": "ok", "indexed_documents": len(db.vectors)}
+    # Don't initialize vector DB without API key, just check if it exists
+    document_count = len(vector_db.vectors) if vector_db is not None else 0
+    return {"status": "ok", "indexed_documents": document_count}
 
 # Entry point for running the application directly
 if __name__ == "__main__":

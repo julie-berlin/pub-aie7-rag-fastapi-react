@@ -33,15 +33,47 @@ export default function Home() {
       return;
     }
 
-    const content = await file.text();
-    const newDoc: Document = {
-      id: Date.now().toString(),
-      name: file.name,
-      type: file.type === 'application/pdf' ? 'pdf' : 'text',
-      content
-    };
+    if (file.type === 'application/pdf') {
+      // Handle PDF upload via backend
+      const formData = new FormData();
+      formData.append('file', file);
 
-    setDocuments(prev => [...prev, newDoc]);
+      try {
+        const response = await fetch('/api/upload-pdf', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload PDF');
+        }
+
+        const result = await response.json();
+        alert(`Successfully uploaded ${file.name}. Created ${result.chunks_created} chunks.`);
+        
+        // Add to documents list for display only
+        const newDoc: Document = {
+          id: Date.now().toString(),
+          name: file.name,
+          type: 'pdf',
+          content: `PDF uploaded and indexed (${result.chunks_created} chunks)`
+        };
+        setDocuments(prev => [...prev, newDoc]);
+      } catch (error) {
+        console.error('Error uploading PDF:', error);
+        alert('Failed to upload PDF. Please try again.');
+      }
+    } else {
+      // Handle text file
+      const content = await file.text();
+      const newDoc: Document = {
+        id: Date.now().toString(),
+        name: file.name,
+        type: 'text',
+        content
+      };
+      setDocuments(prev => [...prev, newDoc]);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +102,7 @@ export default function Home() {
         },
         body: JSON.stringify({
           developer_message: `You are a helpful assistant. Use the following documents as context to answer questions: ${context}`,
-          user_message: prompt,
+          user_message: userMessage.content,
           api_key: apiKey
         })
       });
