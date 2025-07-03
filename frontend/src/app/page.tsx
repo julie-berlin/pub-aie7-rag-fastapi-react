@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { chatRequest, uploadPdfRequest } from '../lib/api-client';
 
 interface Message {
   id: string;
@@ -35,33 +36,21 @@ export default function Home() {
 
     if (file.type === 'application/pdf') {
       // Handle PDF upload via backend
-      const formData = new FormData();
-      formData.append('file', file);
-
       try {
-        const response = await fetch('/api/upload-pdf', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-          },
-          body: formData,
-        });
+        const result = await uploadPdfRequest(file, apiKey);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Backend error:', errorText);
-          throw new Error(`Upload failed: ${errorText}`);
+        if (!result.ok) {
+          throw new Error(result.error || 'Upload failed');
         }
 
-        const result = await response.json();
-        alert(`Successfully uploaded ${file.name}. Created ${result.chunks_created} chunks.`);
+        alert(`Successfully uploaded ${file.name}. Created ${result.data.chunks_created} chunks.`);
 
         // Add to documents list for display only
         const newDoc: Document = {
           id: Date.now().toString(),
           name: file.name,
           type: 'pdf',
-          content: `PDF uploaded and indexed (${result.chunks_created} chunks)`
+          content: `PDF uploaded and indexed (${result.data.chunks_created} chunks)`
         };
         setDocuments(prev => [...prev, newDoc]);
       } catch (error) {
@@ -101,23 +90,19 @@ export default function Home() {
       const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.id));
       const context = selectedDocs.map(doc => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          developer_message: `You are a helpful assistant. Use the following documents as context to answer questions: ${context}`,
-          user_message: userMessage.content,
-          api_key: apiKey
-        })
-      });
+      const result = await chatRequest(
+        `You are a helpful assistant. Use the following documents as context to answer questions: ${context}`,
+        userMessage.content,
+        apiKey
+      );
 
-      if (!response.ok) throw new Error('Failed to get response');
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to get response');
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: await response.text(),
+        content: result.data,
         role: 'assistant',
         timestamp: new Date()
       };
