@@ -1,6 +1,9 @@
 import os
 import sys
 import tempfile
+import logging
+import json
+from datetime import datetime
 from typing import Optional
 
 # Add parent directory to path for aimakerspace imports BEFORE other imports
@@ -11,16 +14,60 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 # Import required FastAPI components for building the API
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Header
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 # Import Pydantic for data validation and settings management
 from pydantic import BaseModel
 # Import OpenAI client for interacting with OpenAI's API
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 # Import aimakerspace components for RAG (after path setup)
 from aimakerspace.vectordatabase import VectorDatabase
 from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
+
+# Configure structured logging
+class StructuredFormatter(logging.Formatter):
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno
+        }
+        
+        # Add extra fields if they exist
+        if hasattr(record, 'user_id'):
+            log_entry['user_id'] = record.user_id
+        if hasattr(record, 'request_id'):
+            log_entry['request_id'] = record.request_id
+        if hasattr(record, 'endpoint'):
+            log_entry['endpoint'] = record.endpoint
+        if hasattr(record, 'api_key_preview'):
+            log_entry['api_key_preview'] = record.api_key_preview
+        if hasattr(record, 'file_name'):
+            log_entry['file_name'] = record.file_name
+        if hasattr(record, 'chunk_count'):
+            log_entry['chunk_count'] = record.chunk_count
+        if hasattr(record, 'error'):
+            log_entry['error'] = record.error
+        if hasattr(record, 'error_type'):
+            log_entry['error_type'] = record.error_type
+            
+        return json.dumps(log_entry)
+
+# Create structured logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create handler with structured formatter
+handler = logging.StreamHandler()
+handler.setFormatter(StructuredFormatter())
+logger.addHandler(handler)
+
+# Prevent duplicate logs
+logger.propagate = False
 
 # Initialize FastAPI application with a title
 app = FastAPI(title="The Information - RAG Chat API")
@@ -54,26 +101,75 @@ class ChatRequest(BaseModel):
     developer_message: str  # Message from the developer/system
     user_message: str      # Message from the user
     model: Optional[str] = "gpt-4.1-mini"  # Optional model selection with default
-    api_key: str          # OpenAI API key for authentication
 
 # Define the main chat endpoint that handles POST requests with RAG
 @app.post("/api/chat")
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, authorization: str = Header(..., alias="Authorization")):
     try:
+        logger.info("Chat request received", extra={
+            "endpoint": "/api/chat",
+            "api_key_preview": authorization[:20] if authorization else 'None',
+            "user_message_preview": request.user_message[:50] if request.user_message else 'None'
+        })
+        
+        # Extract API key from Authorization header
+        if not authorization or not authorization.startswith("Bearer "):
+            logger.error("Invalid authorization header format", extra={
+                "endpoint": "/api/chat",
+                "authorization_preview": authorization[:20] if authorization else 'None'
+            })
+            raise HTTPException(status_code=401, detail="Invalid authorization header format. Expected: Bearer <token>")
+        api_key = authorization.replace("Bearer ", "")
+        
         # Initialize OpenAI client with the provided API key
-        client = OpenAI(api_key=request.api_key)
+        client = OpenAI(api_key=api_key)
         
         # Retrieve relevant context from vector database
         relevant_chunks = []
         db = get_vector_db()
         if len(db.vectors) > 0:
-            # Search for relevant chunks using the user's message
-            search_results = db.search_by_text(
-                request.user_message, 
-                k=3,  # Get top 3 most relevant chunks
-                return_as_text=True
-            )
-            relevant_chunks = search_results
+            try:
+                logger.info("Starting vector search", extra={
+                    "endpoint": "/api/chat",
+                    "query_preview": request.user_message[:50],
+                    "vector_count": len(db.vectors)
+                })
+                
+                # Create embedding model with API key for query embedding only
+                from aimakerspace.openai_utils.embedding import EmbeddingModel
+                logger.info("Creating embedding model", extra={
+                    "endpoint": "/api/chat",
+                    "api_key_preview": api_key[:10]
+                })
+                embedding_model = EmbeddingModel(api_key=api_key)
+                logger.info("Embedding model created successfully", extra={"endpoint": "/api/chat"})
+                
+                # Get embedding for the user's message
+                logger.info("Getting embedding for query", extra={"endpoint": "/api/chat"})
+                query_embedding = embedding_model.get_embedding(request.user_message)
+                logger.info("Query embedding received", extra={
+                    "endpoint": "/api/chat",
+                    "embedding_length": len(query_embedding)
+                })
+                
+                # Search existing vectors (no API key needed for this part)
+                import numpy as np
+                search_results = db.search(np.array(query_embedding), k=3)
+                
+                # Extract the text content from the search results
+                relevant_chunks = [result[0] for result in search_results]
+                logger.info("Vector search completed", extra={
+                    "endpoint": "/api/chat",
+                    "chunks_found": len(relevant_chunks)
+                })
+                
+            except Exception as e:
+                logger.error("Error during vector search", extra={
+                    "endpoint": "/api/chat",
+                    "error": str(e),
+                    "error_type": type(e).__name__
+                })
+                relevant_chunks = []
         
         # Enhance developer message with retrieved context
         enhanced_developer_message = request.developer_message
@@ -103,12 +199,21 @@ async def chat(request: ChatRequest):
     
     except Exception as e:
         # Handle any errors that occur during processing
+        logger.error("Chat request failed", extra={
+            "endpoint": "/api/chat",
+            "error": str(e),
+            "error_type": type(e).__name__
+        })
         raise HTTPException(status_code=500, detail=str(e))
 
 # Define PDF upload endpoint for indexing documents
 @app.post("/api/upload-pdf")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(file: UploadFile = File(...), authorization: str = Header(..., alias="Authorization")):
     try:
+        # Extract API key from Authorization header
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format. Expected: Bearer <token>")
+        api_key = authorization.replace("Bearer ", "")
         # Validate file type
         if not file.filename or not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
@@ -126,9 +231,41 @@ async def upload_pdf(file: UploadFile = File(...)):
         # Split text into chunks
         chunks = text_splitter.split_texts(documents)
         
-        # Add chunks to vector database
-        db = get_vector_db()
+        # Add chunks to vector database with provided API key
+        from aimakerspace.openai_utils.embedding import EmbeddingModel
+        
+        logger.info("Creating embedding model for PDF processing", extra={
+            "endpoint": "/api/upload-pdf",
+            "api_key_preview": api_key[:10],
+            "file_name": file.filename
+        })
+        
+        # Create embedding model with the provided API key
+        embedding_model = EmbeddingModel(api_key=api_key)
+        logger.info("Embedding model created successfully", extra={
+            "endpoint": "/api/upload-pdf",
+            "file_name": file.filename
+        })
+        
+        # Create vector database with the embedding model and update global instance
+        db = VectorDatabase(embedding_model=embedding_model)
+        logger.info("Processing PDF chunks", extra={
+            "endpoint": "/api/upload-pdf",
+            "chunk_count": len(chunks),
+            "file_name": file.filename
+        })
+        
         await db.abuild_from_list(chunks)
+        
+        # Update the global vector database
+        global vector_db
+        vector_db = db
+        
+        logger.info("Vector database build completed", extra={
+            "endpoint": "/api/upload-pdf",
+            "chunk_count": len(chunks),
+            "file_name": file.filename
+        })
         
         # Clean up temporary file
         import os
