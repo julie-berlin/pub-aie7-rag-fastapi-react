@@ -50,7 +50,7 @@ export default function Home() {
 
         const result = await response.json();
         alert(`Successfully uploaded ${file.name}. Created ${result.chunks_created} chunks.`);
-        
+
         // Add to documents list for display only
         const newDoc: Document = {
           id: Date.now().toString(),
@@ -94,7 +94,7 @@ export default function Home() {
     try {
       const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.id));
       const context = selectedDocs.map(doc => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
-      
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -136,15 +136,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white py-6">
-            inform.me
-          </h1>
-        </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
@@ -236,8 +229,8 @@ export default function Home() {
                     {messages.map(message => (
                       <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-3xl px-4 py-2 rounded-lg ${
-                          message.role === 'user' 
-                            ? 'bg-blue-600 text-white' 
+                          message.role === 'user'
+                            ? 'bg-blue-600 text-white'
                             : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                         }`}>
                           <p className="whitespace-pre-wrap">{message.content}</p>
@@ -286,7 +279,7 @@ export default function Home() {
             </form>
           </div>
         </div>
-      </main>
+      </section>
     </div>
   );
 }
