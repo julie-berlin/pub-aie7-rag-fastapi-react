@@ -280,6 +280,11 @@ async def upload_pdf(file: UploadFile = File(...), authorization: str = Header(.
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
 
+# Define a simple test endpoint
+@app.get("/api/test")
+async def test_endpoint():
+    return {"message": "FastAPI is working on Vercel!", "status": "success"}
+
 # Define a health check endpoint to verify API status
 @app.get("/api/health")
 async def health_check():
