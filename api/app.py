@@ -110,7 +110,7 @@ async def chat(request: ChatRequest):
 async def upload_pdf(file: UploadFile = File(...)):
     try:
         # Validate file type
-        if not file.filename.lower().endswith('.pdf'):
+        if not file.filename or not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
         
         # Save uploaded file to temporary location

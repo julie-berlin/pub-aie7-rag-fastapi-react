@@ -26,3 +26,4 @@ Constraints
 - CORS should only allow backend communication from localhost on local or vercel host on preview/production
 - Adhere to WCAG 2.1 or above accessibility standards
 - PDF size maximum is 10Mb
+- Backend is served from `/api` via FastAPI
