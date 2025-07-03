@@ -43,14 +43,15 @@ export default function Home() {
           throw new Error(result.error || 'Upload failed');
         }
 
-        alert(`Successfully uploaded ${file.name}. Created ${result.data.chunks_created} chunks.`);
+        const chunksCreated = result.data?.chunks_created || 0;
+        alert(`Successfully uploaded ${file.name}. Created ${chunksCreated} chunks.`);
 
         // Add to documents list for display only
         const newDoc: Document = {
           id: Date.now().toString(),
           name: file.name,
           type: 'pdf',
-          content: `PDF uploaded and indexed (${result.data.chunks_created} chunks)`
+          content: `PDF uploaded and indexed (${chunksCreated} chunks)`
         };
         setDocuments(prev => [...prev, newDoc]);
       } catch (error) {
@@ -102,7 +103,7 @@ export default function Home() {
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: result.data,
+        content: result.data || 'No response received',
         role: 'assistant',
         timestamp: new Date()
       };
