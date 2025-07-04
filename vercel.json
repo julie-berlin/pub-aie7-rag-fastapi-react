@@ -1,8 +1,7 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/app.py"
+  "functions": {
+    "api/**": {
+      "excludeFiles": "{.next,.git,.claude,.cursor,node_modules}/**"
     }
-  ]
+  }
 }
