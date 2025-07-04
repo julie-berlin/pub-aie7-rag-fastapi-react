@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "fastapi-dev": "cd api && uv sync && uv run python3 app.py"
   },
   "dependencies": {
     "react": "^19.0.0",

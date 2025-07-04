@@ -3,7 +3,7 @@ name = "rag-pdf-search"
 version = "0.1.0"
 description = "homework 3 for ai makerspace bootcamp"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.115.9",
     "jupyter>=1.1.1",
