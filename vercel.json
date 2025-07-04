@@ -4,7 +4,7 @@
   "installCommand": "cd frontend && npm install",
   "functions": {
     "api/app.py": {
-      "runtime": "python3.11"
+      "runtime": "vercel-python@1.0.0"
     }
   },
   "rewrites": [
