@@ -24,6 +24,7 @@ from openai import OpenAI, AsyncOpenAI
 # Import aimakerspace components for RAG (after path setup)
 from aimakerspace.vectordatabase import VectorDatabase
 from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter, WordDocLoader, TextFileLoader
+from aimakerspace.openai_utils.embedding import EmbeddingModel
 
 # Configure structured logging
 class StructuredFormatter(logging.Formatter):
@@ -163,6 +164,7 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
 
         # Retrieve relevant context from vector database
         relevant_chunks = []
+        citations = []
         db = get_vector_db()
         if len(db.vectors) > 0:
             try:
@@ -173,7 +175,6 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
                 })
 
                 # Create embedding model with API key for query embedding only
-                from aimakerspace.openai_utils.embedding import EmbeddingModel
                 logger.info("Creating embedding model", extra={
                     "endpoint": "/api/chat",
                     "api_key_preview": api_key[:10]
@@ -189,15 +190,17 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
                     "embedding_length": len(query_embedding)
                 })
 
-                # Search existing vectors (no API key needed for this part)
+                # Search existing vectors with metadata (no API key needed for this part)
                 import numpy as np
-                search_results = db.search(np.array(query_embedding), k=3)
+                search_results = db.search_with_metadata(np.array(query_embedding), k=3)
 
-                # Extract the text content from the search results
+                # Extract the text content and citations from the search results
                 relevant_chunks = [result[0] for result in search_results]
+                citations = list(set([result[2].get("document_name", "Unknown") for result in search_results if result[2]]))
                 logger.info("Vector search completed", extra={
                     "endpoint": "/api/chat",
-                    "chunks_found": len(relevant_chunks)
+                    "chunks_found": len(relevant_chunks),
+                    "citations_found": len(citations)
                 })
 
             except Exception as e:
@@ -207,6 +210,7 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
                     "error_type": type(e).__name__
                 })
                 relevant_chunks = []
+                citations = []
 
         # Create system message with CoachCatalyst prompt and context
         system_message = COACH_CATALYST_SYSTEM_PROMPT
@@ -230,6 +234,10 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
             for chunk in stream:
                 if chunk.choices[0].delta.content is not None:
                     yield chunk.choices[0].delta.content
+            
+            # After streaming is complete, add citations if available
+            if citations:
+                yield f"\n\n[CITATIONS]{json.dumps(citations)}[/CITATIONS]"
 
         # Return a streaming response to the client
         return StreamingResponse(generate(), media_type="text/plain")
@@ -291,9 +299,10 @@ async def upload(file: UploadFile = File(...), authorization: str = Header(..., 
         # Split text into chunks
         chunks = text_splitter.split_texts(documents)
 
-        # Add chunks to vector database with provided API key
-        from aimakerspace.openai_utils.embedding import EmbeddingModel
+        # Create metadata for each chunk
+        chunk_metadata = [{"document_name": file.filename} for _ in chunks]
 
+        # Add chunks to vector database with provided API key
         logger.info("Creating embedding model for document processing", extra={
             "endpoint": "/api/upload",
             "api_key_preview": api_key[:10],
@@ -307,19 +316,30 @@ async def upload(file: UploadFile = File(...), authorization: str = Header(..., 
             "file_name": file.filename
         })
 
-        # Create vector database with the embedding model and update global instance
-        db = VectorDatabase(embedding_model=embedding_model)
+        # Use existing vector database or create a new one
+        db = get_vector_db()
+        if db.embedding_model is None:
+            db.embedding_model = embedding_model
+        
         logger.info("Processing document chunks", extra={
             "endpoint": "/api/upload",
             "chunk_count": len(chunks),
             "file_name": file.filename
         })
 
-        await db.abuild_from_list(chunks)
-
-        # Update the global vector database
-        global vector_db
-        vector_db = db
+        # Get embeddings for the new chunks
+        embeddings = await embedding_model.async_get_embeddings(chunks)
+        
+        # Add chunks to the existing database
+        import numpy as np
+        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+            db.insert(chunk, np.array(embedding), chunk_metadata[i])
+        
+        logger.info("Document chunks added to vector database", extra={
+            "endpoint": "/api/upload",
+            "total_vectors": len(db.vectors),
+            "file_name": file.filename
+        })
 
         logger.info("Vector database build completed", extra={
             "endpoint": "/api/upload",
@@ -351,6 +371,58 @@ async def health_check():
     # Don't initialize vector DB without API key, just check if it exists
     document_count = len(vector_db.vectors) if vector_db is not None else 0
     return {"status": "ok", "indexed_documents": document_count}
+
+# Define endpoint to clear the vector database
+@app.post("/api/clear")
+async def clear_database():
+    try:
+        global vector_db
+        if vector_db is not None:
+            vector_db.clear()
+            logger.info("Vector database cleared", extra={"endpoint": "/api/clear"})
+            return {"message": "Vector database cleared successfully", "status": "success"}
+        else:
+            return {"message": "Vector database is already empty", "status": "success"}
+    except Exception as e:
+        logger.error("Failed to clear vector database", extra={
+            "endpoint": "/api/clear",
+            "error": str(e),
+            "error_type": type(e).__name__
+        })
+        raise HTTPException(status_code=500, detail=f"Error clearing database: {str(e)}")
+
+# Define endpoint to delete vectors for a specific document
+@app.post("/api/delete-document")
+async def delete_document(request: dict):
+    try:
+        document_name = request.get("document_name")
+        if not document_name:
+            raise HTTPException(status_code=400, detail="document_name is required")
+        
+        global vector_db
+        if vector_db is not None:
+            deleted_count = vector_db.delete_by_document(document_name)
+            logger.info("Document vectors deleted", extra={
+                "endpoint": "/api/delete-document",
+                "document_name": document_name,
+                "deleted_count": deleted_count
+            })
+            return {
+                "message": f"Deleted {deleted_count} vectors for document '{document_name}'",
+                "status": "success",
+                "deleted_count": deleted_count
+            }
+        else:
+            return {"message": "Vector database is empty", "status": "success", "deleted_count": 0}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to delete document vectors", extra={
+            "endpoint": "/api/delete-document",
+            "error": str(e),
+            "error_type": type(e).__name__
+        })
+        raise HTTPException(status_code=500, detail=f"Error deleting document: {str(e)}")
 
 # Entry point removed for Vercel compatibility
 # For local development, use: uvicorn api.app:app --reload
