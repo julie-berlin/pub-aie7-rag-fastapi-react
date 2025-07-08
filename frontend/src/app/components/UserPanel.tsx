@@ -15,7 +15,7 @@ interface UserPanelProps {
   setSelectedDocuments: (ids: string[]) => void;
   handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleFile: (file: File) => Promise<void>;
-  handleNewChat: () => void;
+  handleClearDocuments: () => void;
   handleDeleteDocument: (docId: string) => void;
   fileInputRef: React.RefObject<HTMLInputElement> | React.RefObject<HTMLInputElement | null>;
   isDragActive: boolean;
@@ -32,7 +32,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   selectedDocuments,
   setSelectedDocuments,
   handleFileUpload,
-  handleNewChat,
+  handleClearDocuments,
   handleDeleteDocument,
   fileInputRef,
   isDragActive,
@@ -185,19 +185,13 @@ const UserPanel: React.FC<UserPanelProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="space-y-3">
+      <div className="mt-auto">
         <button
-          onClick={handleNewChat}
-          className="w-full px-4 py-3 bg-blue-100 bg-opacity-50 text-blue-700 rounded-xl hover:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 font-medium"
-          aria-label="Start new chat"
+          onClick={handleClearDocuments}
+          className="w-full px-4 py-3 bg-red-100 bg-opacity-50 text-red-700 rounded-xl hover:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-300 font-medium"
+          aria-label="Clear all documents"
         >
-          Clear Chat
-        </button>
-        <button
-          className="w-full px-4 py-3 gradient-primary text-white rounded-xl btn-hover focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-          aria-label="Export chat history"
-        >
-          Export Chat
+          Clear Documents
         </button>
       </div>
     </div>

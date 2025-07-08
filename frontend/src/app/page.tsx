@@ -177,6 +177,47 @@ export default function Home() {
 
   const handleNewChat = () => {
     setMessages([]);
+    showNotification('Chat cleared successfully', 'success');
+  };
+
+  const handleExportChat = () => {
+    if (messages.length === 0) {
+      showNotification('No messages to export', 'info');
+      return;
+    }
+
+    const chatData = {
+      exported_at: new Date().toISOString(),
+      application: 'CoachCatalyst',
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        timestamp: msg.timestamp.toISOString()
+      }))
+    };
+
+    const dataStr = JSON.stringify(chatData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `coachcatalyst-chat-${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+    
+    showNotification('Chat exported successfully', 'success');
+  };
+
+  const handleClearDocuments = () => {
+    if (documents.length === 0) {
+      showNotification('No documents to clear', 'info');
+      return;
+    }
+    
+    setDocuments([]);
+    setSelectedDocuments([]);
+    showNotification(`Cleared ${documents.length} documents`, 'success');
   };
 
   const handleDeleteDocument = (docId: string) => {
@@ -198,7 +239,7 @@ export default function Home() {
               setSelectedDocuments={setSelectedDocuments}
               handleFileUpload={handleFileUpload}
               handleFile={handleFile}
-              handleNewChat={handleNewChat}
+              handleClearDocuments={handleClearDocuments}
               handleDeleteDocument={handleDeleteDocument}
               fileInputRef={fileInputRef}
               isDragActive={isDragActive}
@@ -222,7 +263,10 @@ export default function Home() {
                   >
                     Clear Chat
                   </button>
-                  <button className="px-4 py-2 gradient-primary text-white rounded-lg btn-hover font-medium">
+                  <button 
+                    onClick={handleExportChat}
+                    className="px-4 py-2 gradient-primary text-white rounded-lg btn-hover font-medium"
+                  >
                     Export Chat
                   </button>
                 </div>
