@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Information",
-  description: "AI-powered knowledge base chat application",
+  title: "Coach Catalyst",
+  description: "AI-powered leadership library",
 };
 
 export default function RootLayout({

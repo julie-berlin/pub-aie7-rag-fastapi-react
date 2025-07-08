@@ -2,37 +2,13 @@
 
 This is an end-to-end RAG application that allows users to upload PDFs for addition to the knowlegebase.
 
-## Homework 3 Assignment
+## Business Case - CoachCatalyst
 
-[here](https://github.com/AI-Maker-Space/AIE7/blob/main/03_End-to-End_RAG/README.md)
+CoachCatalyst is your personalized leadership coach built from your own library of resources. The advice you need is already in your possession. Now you can access it with a chat conversation!
 
-Verify that Activity #1 was completed by validating that:
-    Cursor/Claude followed the global rules you added to the .cursor file:
-        It created a new branch prior to generating code
-        It created a MERGE.md file with appropriate instructions for merging this new branch
-
-        NOTE: If you "used your own mind" rather than vibe coding with Cursor/Claude then it is your responsibility to do these two things, or ask Claude directly to do them for you.
-
-    The deployed application is able to upload a PDF, index it, and then chat about the contents of the PDF.
-
-Verify that Activity #2 was completed by validating that:
-    Cursor/Claude followed the global rules you added to the .cursor file (samme as in Step 1 above)
-    The deployed application is still able to upload, process, and chat about a PDF (the functionality of Activity #1)
-    The deployed application meets your new functionality requirements for the RAG-specific use-case that you implemented
-Create a 5 minute or less Loom video about the assignment and your modified challenge application
-Post on social media (LinkedIn, X, and Discord's #build-ship-share-🏗️-🚢-🚀 channel)
-Complete the Homework Form!
-
-
-## Business Case
-
-- **Problem:** (Write a 1 sentence description of the problem you're trying to solve)
-- **Why** Write a paragraph about why this is a problem worth solving. To the company, to the world, to you!
-- **Success** Write 1-2 sentences about what success looks like. What is the Key Performance Indicator?
-- **Audience** Specify the user/stakeholder/customer that this product is for. What is their pain point or need that connects back to the problem?
+- **Problem:** - I've collected leadership tips and advice but I don't have it at my fingertips when I have a specific problem or question. I can't always afford or find time to meet with a coach.
+- **Why** - I am learning to be a better technical leader but valuable information is scattered among documents in various formats. It's hard to find the right tips when I need them.
+- **Success** - Success indicators would be user adoption and weekly users and NPS rating of satisfaction.
+- **Audience** - People who are seeking to improve their leadership skills and need advice on situations that arise. They already have a library of good resources but need to find the tips.
 - **Potential solution** Briefly describe data that you might use and the modeling techniques that you plan to leverage.
-- **Sharing** What community (or company) do you plan on sharing your project in?
-
-
-AI Makerspace Bootcamp Cohort #7
-- HW3 build a web application using FastAPI and Next.js
+- **Sharing** - I think this would be valuable to share on LinkedIn because the focus is career development.

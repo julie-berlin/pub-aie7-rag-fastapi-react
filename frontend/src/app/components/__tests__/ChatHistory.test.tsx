@@ -7,7 +7,8 @@ import ChatHistory from '../ChatHistory';
 describe('ChatHistory', () => {
   it('renders empty state', () => {
     render(<ChatHistory messages={[]} isLoading={false} />);
-    expect(screen.getByText(/start a conversation/i)).toBeInTheDocument();
+    expect(screen.getByText(/Welcome to CoachCatalyst!/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ask questions about your leadership documents/i)).toBeInTheDocument();
   });
 
   it('renders messages', () => {
@@ -25,6 +26,6 @@ describe('ChatHistory', () => {
       { id: '1', content: 'Hello', role: 'user', timestamp: new Date() },
     ] as const;
     render(<ChatHistory messages={[...messages]} isLoading={true} />);
-    expect(screen.getByText(/thinking/i)).toBeInTheDocument();
+    expect(screen.getByText(/Analyzing your leadership library/i)).toBeInTheDocument();
   });
 });

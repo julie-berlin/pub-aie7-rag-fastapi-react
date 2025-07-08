@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { chatRequest, uploadPdfRequest } from '@/utils/api-client';
 
 import UserPanel from './components/UserPanel';
@@ -30,6 +30,18 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle suggested questions
+  React.useEffect(() => {
+    const handleSuggestionClick = (event: CustomEvent) => {
+      setPrompt(event.detail);
+    };
+
+    window.addEventListener('suggestionClick', handleSuggestionClick as EventListener);
+    return () => {
+      window.removeEventListener('suggestionClick', handleSuggestionClick as EventListener);
+    };
+  }, []);
 
   // Helper to handle a File object directly
   const handleFile = async (file: File) => {
@@ -149,10 +161,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid lg:grid-cols-[350px_1fr] gap-0 mobile-stack">
+          {/* Sidebar */}
+          <div className="order-2 lg:order-1 mobile-order-2">
             <UserPanel
               apiKey={apiKey}
               setApiKey={setApiKey}
@@ -171,23 +184,45 @@ export default function Home() {
               handleDragLeave={handleDragLeave}
             />
           </div>
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-600">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Chat History</h2>
+          
+          {/* Main Chat Area */}
+          <div className="order-1 lg:order-2 mobile-order-1">
+            <div className="glass-card rounded-2xl mr-4 mt-4 flex flex-col mobile-mx-4 mobile-full-height" style={{ height: '700px' }}>
+              {/* Chat Header */}
+              <div className="p-6 border-b border-gray-200 border-opacity-50 flex justify-between items-center">
+                <div className="text-xl font-semibold text-primary">Ask Your Leadership Library</div>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={handleNewChat}
+                    className="px-4 py-2 bg-blue-100 bg-opacity-50 text-blue-700 rounded-lg hover:bg-opacity-70 transition-all duration-300 font-medium"
+                  >
+                    Clear Chat
+                  </button>
+                  <button className="px-4 py-2 gradient-primary text-white rounded-lg btn-hover font-medium">
+                    Export Chat
+                  </button>
+                </div>
               </div>
-              <ChatHistory messages={messages} isLoading={isLoading} />
+              
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-hidden">
+                <ChatHistory messages={messages} isLoading={isLoading} />
+              </div>
+              
+              {/* Chat Input */}
+              <div className="p-6 border-t border-gray-200 border-opacity-50">
+                <ChatInputForm
+                  prompt={prompt}
+                  setPrompt={setPrompt}
+                  onSubmit={handleSubmit}
+                  isLoading={isLoading}
+                  apiKey={apiKey}
+                />
+              </div>
             </div>
-            <ChatInputForm
-              prompt={prompt}
-              setPrompt={setPrompt}
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-              apiKey={apiKey}
-            />
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

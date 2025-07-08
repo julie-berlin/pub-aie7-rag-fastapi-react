@@ -1,8 +1,20 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* CoachCatalyst Brand Colors */
+  --cc-primary-start: #667eea;
+  --cc-primary-end: #764ba2;
+  --cc-secondary-start: #f093fb;
+  --cc-secondary-end: #f5576c;
+  --cc-text-primary: #2d3748;
+  --cc-text-secondary: #718096;
+  --cc-glass-bg: rgba(255, 255, 255, 0.95);
+  --cc-glass-border: rgba(255, 255, 255, 0.2);
+  --cc-shadow: rgba(0, 0, 0, 0.1);
 }
 
 @theme inline {
@@ -16,11 +28,116 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --cc-glass-bg: rgba(0, 0, 0, 0.95);
+    --cc-glass-border: rgba(255, 255, 255, 0.1);
+    --cc-shadow: rgba(0, 0, 0, 0.3);
   }
 }
 
 body {
-  background: var(--background);
+  background: linear-gradient(135deg, var(--cc-primary-start) 0%, var(--cc-primary-end) 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+/* CoachCatalyst Glassmorphism Utility Classes */
+.glass-card {
+  background: var(--cc-glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--cc-glass-border);
+  box-shadow: 0 8px 32px var(--cc-shadow);
+}
+
+.glass-card-hover {
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px var(--cc-shadow);
+}
+
+.gradient-primary {
+  background: linear-gradient(45deg, var(--cc-primary-start), var(--cc-primary-end));
+}
+
+.gradient-secondary {
+  background: linear-gradient(45deg, var(--cc-secondary-start), var(--cc-secondary-end));
+}
+
+.text-primary {
+  color: var(--cc-text-primary);
+}
+
+.text-secondary {
+  color: var(--cc-text-secondary);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Button hover effects */
+.btn-hover {
+  transition: all 0.3s ease;
+}
+
+.btn-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--cc-primary-start);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--cc-primary-end);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1024px) {
+  .mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .mobile-order-1 {
+    order: 1;
+  }
+  
+  .mobile-order-2 {
+    order: 2;
+  }
+  
+  .mobile-full-height {
+    height: 600px !important;
+  }
+  
+  .mobile-mx-4 {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
 }
