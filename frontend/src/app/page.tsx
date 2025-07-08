@@ -16,13 +16,6 @@ interface Message {
   timestamp: Date;
 }
 
-interface Document {
-  id: string;
-  name: string;
-  type: 'text' | 'pdf' | 'word';
-  content: string;
-}
-
 export default function Home() {
   const [apiKey, setApiKey] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -67,10 +60,6 @@ export default function Home() {
   // Callbacks from UserPanel
   const handleApiKeyChange = (newApiKey: string) => {
     setApiKey(newApiKey);
-  };
-
-  const handleDocumentsChange = (newDocuments: Document[], newSelectedDocuments: string[]) => {
-    // Documents are managed internally by UserPanel - no need to store in parent
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,7 +146,6 @@ export default function Home() {
           <div className="order-2 lg:order-1 mobile-order-2 lg:h-full">
             <UserPanel
               onApiKeyChange={handleApiKeyChange}
-              onDocumentsChange={handleDocumentsChange}
               onNotification={showNotification}
             />
           </div>

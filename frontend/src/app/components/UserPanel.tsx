@@ -10,13 +10,13 @@ interface Document {
 
 interface UserPanelProps {
   onApiKeyChange: (apiKey: string) => void;
-  onDocumentsChange: (documents: Document[], selectedDocuments: string[]) => void;
+  // onDocumentsChange: (documents: Document[], selectedDocuments: string[]) => void;
   onNotification: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
   onApiKeyChange,
-  onDocumentsChange,
+  // onDocumentsChange,
   onNotification
 }) => {
   // Internal state
@@ -35,12 +35,12 @@ const UserPanel: React.FC<UserPanelProps> = ({
   const handleDocumentsChange = (newDocuments: Document[], newSelectedDocuments: string[]) => {
     setDocuments(newDocuments);
     setSelectedDocuments(newSelectedDocuments);
-    onDocumentsChange(newDocuments, newSelectedDocuments);
+    // onDocumentsChange(newDocuments, newSelectedDocuments);
   };
 
   const handleSelectedDocumentsChange = (newSelectedDocuments: string[]) => {
     setSelectedDocuments(newSelectedDocuments);
-    onDocumentsChange(documents, newSelectedDocuments);
+    // onDocumentsChange(documents, newSelectedDocuments);
   };
 
   // File handling
