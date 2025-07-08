@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { chatRequest, uploadPdfRequest } from '@/utils/api-client';
+import { chatRequest, uploadFileRequest } from '@/utils/api-client';
 
 import UserPanel from './components/UserPanel';
 import ChatHistory from './components/ChatHistory';
@@ -58,7 +58,7 @@ export default function Home() {
 
     // All supported files go to /api/upload
     try {
-      const result = await uploadPdfRequest(file, apiKey); // This function should POST to /api/upload
+      const result = await uploadFileRequest(file, apiKey); // This function should POST to /api/upload
       if (!result.ok) {
         throw new Error(result.error || 'Upload failed');
       }

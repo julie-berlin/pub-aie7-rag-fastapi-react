@@ -11,7 +11,7 @@ interface ApiClientResponse<T = unknown> {
   ok: boolean;
 }
 
-interface PdfUploadResponse {
+interface FileUploadResponse {
   message: string;
   chunks_created: number;
   filename: string;
@@ -53,7 +53,7 @@ export async function apiClient<T = unknown>({
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API Error (${response.status}):`, errorText);
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         return {
@@ -113,14 +113,14 @@ export async function chatRequest(
 }
 
 /**
- * Helper function specifically for PDF upload requests
+ * Helper function for file upload requests (supports PDF, Word, text, and markdown files)
  */
-export async function uploadPdfRequest(file: File, apiKey: string): Promise<ApiClientResponse<PdfUploadResponse>> {
+export async function uploadFileRequest(file: File, apiKey: string): Promise<ApiClientResponse<FileUploadResponse>> {
   const formData = new FormData();
   formData.append('file', file);
 
-  return apiClient<PdfUploadResponse>({
-    endpoint: '/api/upload-pdf',
+  return apiClient<FileUploadResponse>({
+    endpoint: '/api/upload',
     body: formData,
     apiKey
   });
