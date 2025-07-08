@@ -19,12 +19,26 @@ The project is organized into several key components:
 
 ## Development Commands
 
+### Start Both Servers
+
+Use the included script to start both backend and frontend servers simultaneously:
+```bash
+./local-dev.sh
+```
+
+This script will:
+- Install backend dependencies using `uv sync`
+- Start the FastAPI backend on `http://localhost:8000`
+- Install frontend dependencies with `npm install` (if needed)
+- Start the Next.js frontend on `http://localhost:3000`
+
 ### Backend (FastAPI)
 
-Start the API server:
+Start the API server individually:
 ```bash
 cd api
-python app.py
+uv sync
+uv run python3 app.py
 ```
 
 The server runs on `http://localhost:8000` with:
@@ -34,17 +48,32 @@ The server runs on `http://localhost:8000` with:
 
 Install backend dependencies:
 ```bash
-pip install -r api/requirements.txt
+uv sync
 ```
 
-Or using the project root:
+### Frontend (Next.js)
+
+Start the development server:
 ```bash
-pip install -e .
+cd frontend
+npm install
+npm run dev
 ```
 
-### Frontend (React)
+The frontend runs on `http://localhost:3000` with:
+- Development server with Turbopack enabled
+- Hot reloading for development
 
-The frontend directory currently contains only a README placeholder. Frontend setup instructions need to be added when the React application is implemented.
+Build for production:
+```bash
+npm run build
+npm start
+```
+
+Run linting:
+```bash
+npm run lint
+```
 
 ### Vector Database & Embeddings
 

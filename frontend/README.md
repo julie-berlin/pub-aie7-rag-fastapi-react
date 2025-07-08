@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Information Frontend
 
-## Getting Started
+Welcome to the frontend of **The Information**! This is your friendly, modern, and modular React (Next.js) app for chatting with your own documents. 🚀
 
-First, run the development server:
+## 🧩 Modular Components
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+The UI is built from reusable, accessible components:
+- **Header**: App title and navigation
+- **Footer**: App footer and notes
+- **UserPanel**: API key input, document upload (drag-and-drop or button), and document selection
+- **ChatHistory**: Displays chat messages and loading state
+- **ChatInputForm**: Input and send your questions
+
+All state is managed at the top level and passed down, so everything stays in sync and easy to maintain.
+
+## 🧪 Testing
+
+We use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) for fast, reliable component tests.
+
+### Running Tests
+
+From the `frontend` directory:
+
+```sh
+npm test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This will run all tests in `src/app/components/__tests__`. Watch mode is enabled by default, so you can keep coding and see results instantly!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### What’s Covered?
+- Rendering and interaction for all major components
+- Accessibility labels and usability
+- Edge cases (empty states, loading, etc.)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Development
 
-## Learn More
+- Modular, accessible, and fun UI
+- Drag-and-drop or button upload for `.txt`, `.md`, `.pdf`, `.doc`, `.docx`
+- Multi-document selection for chat context
+- All state and logic is easy to follow and extend
 
-To learn more about Next.js, take a look at the following resources:
+## 💡 Pro Tips
+- You can run tests in another terminal while developing for instant feedback
+- All components are in `src/app/components/` and are easy to test and reuse
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Have fun, and remember: LLMs can make mistakes, but your UI doesn’t have to! 😄
