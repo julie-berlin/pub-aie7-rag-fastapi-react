@@ -315,8 +315,5 @@ async def health_check():
     document_count = len(vector_db.vectors) if vector_db is not None else 0
     return {"status": "ok", "indexed_documents": document_count}
 
-# Entry point for running the application directly
-if __name__ == "__main__":
-    import uvicorn
-    # Start the server on all network interfaces (0.0.0.0) on port 8000
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# Entry point removed for Vercel compatibility
+# For local development, use: uvicorn api.app:app --reload
