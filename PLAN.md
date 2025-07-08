@@ -11,7 +11,7 @@ The user flow is:
 - User provides their OpenAI API key
 - User uploads a single PDF file
 - User selects the documents from the input (can be multiple)
-- User types a question into the input and sends
+- User types a question into the input and submits
 - User can clear the chat
 - User can delete one or many documents
 
@@ -27,3 +27,4 @@ Constraints
 - Adhere to WCAG 2.1 or above accessibility standards
 - PDF size maximum is 10Mb
 - Backend is served from `/api` via FastAPI
+- There is no data persistence between sessions

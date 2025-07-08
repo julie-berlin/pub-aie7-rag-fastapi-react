@@ -2,10 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Development Conventions
-
-- You always prefer to use branch development. Before writing any code - you create a feature branch to hold those changes. After you are done - provide instructions in a "MERGE.md" file that explains how to merge the changes back to `main` with both a GitHub PR route and a GitHub CLI route.
-
 ## Project Overview
 
 This is an AI Makerspace Bootcamp project for building a RAG (Retrieval-Augmented Generation) web application using FastAPI and React.js. The project allows users to upload PDFs for addition to a knowledge base and chat with the system using OpenAI's API.
