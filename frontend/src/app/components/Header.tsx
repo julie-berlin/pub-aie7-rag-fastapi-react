@@ -11,11 +11,11 @@ const Header: React.FC = () => (
           CoachCatalyst
         </div>
       </div>
-      <div className="flex items-center gap-3 px-4 py-2 bg-opacity-10 bg-blue-600 rounded-xl cursor-pointer hover:bg-opacity-20 transition-all duration-300">
-        <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-white font-semibold text-sm">
-          YD
+      <div className="flex items-center gap-3 px-4 py-2 bg-gray-200 bg-opacity-50 rounded-xl cursor-not-allowed opacity-60">
+        <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-semibold text-sm">
+          🔒
         </div>
-        <span className="text-primary font-medium">Your Development</span>
+        <span className="text-gray-600 font-medium">Signup Coming Soon!</span>
       </div>
     </div>
   </header>

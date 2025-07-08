@@ -61,7 +61,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-6 ml-4">
+    <div className="glass-card rounded-2xl p-6 space-y-6 ml-4 mt-4 lg:h-full lg:mt-0 flex flex-col">
       <h3 className="text-lg font-semibold text-primary mb-5">Your Leadership Library</h3>
       
       {/* Document Stats */}
@@ -132,11 +132,11 @@ const UserPanel: React.FC<UserPanelProps> = ({
       </div>
 
       {/* Recent Documents */}
-      <div>
+      <div className="flex-1 flex flex-col min-h-0">
         <label className="block text-sm font-medium text-primary mb-3">
           Recent Documents
         </label>
-        <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+        <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
           {documents.map(doc => {
             const icon = getDocumentIcon(doc.type);
             return (

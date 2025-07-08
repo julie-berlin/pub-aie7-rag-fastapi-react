@@ -6,6 +6,7 @@ import { chatRequest, uploadFileRequest } from '@/utils/api-client';
 import UserPanel from './components/UserPanel';
 import ChatHistory from './components/ChatHistory';
 import ChatInputForm from './components/ChatInputForm';
+import Notification from './components/Notification';
 
 interface Message {
   id: string;
@@ -30,6 +31,29 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Notification state
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({
+      message,
+      type,
+      isVisible: true
+    });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, isVisible: false }));
+  };
 
   // Handle suggested questions
   React.useEffect(() => {
@@ -52,7 +76,7 @@ export default function Home() {
       file.type !== 'application/msword' &&
       file.type !== 'text/markdown'
     ) {
-      alert('Please upload only text, markdown, PDF, or Word files');
+      showNotification('Please upload only text, markdown, PDF, or Word files', 'error');
       return;
     }
 
@@ -73,11 +97,11 @@ export default function Home() {
         content: `${file.name} uploaded and indexed (${chunksCreated} chunks)`
       };
       setDocuments(prev => [...prev, newDoc]);
-      alert(`Successfully uploaded ${file.name}. Created ${chunksCreated} chunks.`);
+      showNotification(`Successfully uploaded ${file.name}. Created ${chunksCreated} chunks.`, 'success');
     } catch (error) {
       console.error('Error uploading file:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to upload file: ${errorMessage}`);
+      showNotification(`Failed to upload file: ${errorMessage}`, 'error');
     }
   };
 
@@ -145,7 +169,7 @@ export default function Home() {
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to get response. Please check your API key and try again.');
+      showNotification('Failed to get response. Please check your API key and try again.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -163,9 +187,9 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-[350px_1fr] gap-0 mobile-stack">
+        <div className="grid lg:grid-cols-[350px_1fr] gap-6 mobile-stack lg:h-[700px]">
           {/* Sidebar */}
-          <div className="order-2 lg:order-1 mobile-order-2">
+          <div className="order-2 lg:order-1 mobile-order-2 lg:h-full">
             <UserPanel
               apiKey={apiKey}
               setApiKey={setApiKey}
@@ -186,8 +210,8 @@ export default function Home() {
           </div>
           
           {/* Main Chat Area */}
-          <div className="order-1 lg:order-2 mobile-order-1">
-            <div className="glass-card rounded-2xl mr-4 mt-4 flex flex-col mobile-mx-4 mobile-full-height" style={{ height: '700px' }}>
+          <div className="order-1 lg:order-2 mobile-order-1 lg:h-full">
+            <div className="glass-card rounded-2xl mt-4 flex flex-col mobile-mx-4 mobile-full-height lg:h-full" style={{ height: '700px' }}>
               {/* Chat Header */}
               <div className="p-6 border-b border-gray-200 border-opacity-50 flex justify-between items-center">
                 <div className="text-xl font-semibold text-primary">Ask Your Leadership Library</div>
@@ -223,6 +247,14 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* Notification */}
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
     </div>
   );
 }
