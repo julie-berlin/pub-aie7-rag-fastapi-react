@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { uploadFileRequest } from '@/utils/api-client';
+import { uploadFileRequest, clearDatabaseRequest, deleteDocumentRequest } from '@/utils/api-client';
 
 interface Document {
   id: string;
@@ -108,21 +108,53 @@ const UserPanel: React.FC<UserPanelProps> = ({
     setIsDragActive(false);
   };
 
-  const handleClearDocuments = () => {
+  const handleClearDocuments = async () => {
     if (documents.length === 0) {
       onNotification('No documents to clear', 'info');
       return;
     }
 
-    const count = documents.length;
-    handleDocumentsChange([], []);
-    onNotification(`Cleared ${count} documents`, 'success');
+    try {
+      // Clear the backend vector database
+      const result = await clearDatabaseRequest();
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to clear database');
+      }
+
+      // Clear the frontend document list
+      const count = documents.length;
+      handleDocumentsChange([], []);
+      onNotification(`Cleared ${count} documents and vector database`, 'success');
+    } catch (error) {
+      console.error('Error clearing documents:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      onNotification(`Failed to clear documents: ${errorMessage}`, 'error');
+    }
   };
 
-  const handleDeleteDocument = (docId: string) => {
-    const newDocuments = documents.filter(doc => doc.id !== docId);
-    const newSelectedDocuments = selectedDocuments.filter(id => id !== docId);
-    handleDocumentsChange(newDocuments, newSelectedDocuments);
+  const handleDeleteDocument = async (docId: string) => {
+    const doc = documents.find(d => d.id === docId);
+    if (!doc) return;
+
+    try {
+      // Delete vectors from the backend
+      const result = await deleteDocumentRequest(doc.name);
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to delete document vectors');
+      }
+
+      // Remove document from frontend list
+      const newDocuments = documents.filter(doc => doc.id !== docId);
+      const newSelectedDocuments = selectedDocuments.filter(id => id !== docId);
+      handleDocumentsChange(newDocuments, newSelectedDocuments);
+      
+      const deletedCount = result.data?.deleted_count || 0;
+      onNotification(`Deleted ${doc.name} and ${deletedCount} vectors`, 'success');
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      onNotification(`Failed to delete ${doc.name}: ${errorMessage}`, 'error');
+    }
   };
   const getDocumentIcon = (type: Document['type']) => {
     switch (type) {
@@ -273,9 +305,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
         <button
           onClick={handleClearDocuments}
           className="w-full px-4 py-3 bg-red-100 bg-opacity-50 text-red-700 rounded-xl hover:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-300 font-medium"
-          aria-label="Clear all documents"
+          aria-label="Clear all documents and vector database"
         >
-          Clear Documents
+          Clear Library
         </button>
       </div>
     </div>

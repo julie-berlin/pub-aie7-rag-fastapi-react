@@ -123,3 +123,26 @@ export async function uploadFileRequest(file: File, apiKey: string): Promise<Api
     apiKey
   });
 }
+
+/**
+ * Helper function to clear the vector database
+ */
+export async function clearDatabaseRequest(): Promise<ApiClientResponse<{message: string; status: string}>> {
+  return apiClient<{message: string; status: string}>({
+    endpoint: '/api/clear',
+    method: 'POST',
+    apiKey: 'dummy' // Clear endpoint doesn't require API key
+  });
+}
+
+/**
+ * Helper function to delete vectors for a specific document
+ */
+export async function deleteDocumentRequest(documentName: string): Promise<ApiClientResponse<{message: string; status: string; deleted_count: number}>> {
+  return apiClient<{message: string; status: string; deleted_count: number}>({
+    endpoint: '/api/delete-document',
+    method: 'POST',
+    body: { document_name: documentName },
+    apiKey: 'dummy' // Delete endpoint doesn't require API key
+  });
+}

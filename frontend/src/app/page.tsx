@@ -14,6 +14,7 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  citations?: string[];
 }
 
 export default function Home() {
@@ -87,11 +88,26 @@ export default function Home() {
         throw new Error(result.error || 'Failed to get response');
       }
 
+      // Parse citations from the response if present
+      let content = result.data || 'No response received';
+      let citations: string[] = [];
+      
+      const citationsMatch = content.match(/\[CITATIONS\](.+?)\[\/CITATIONS\]/);
+      if (citationsMatch) {
+        try {
+          citations = JSON.parse(citationsMatch[1]);
+          content = content.replace(/\[CITATIONS\](.+?)\[\/CITATIONS\]/, '').trim();
+        } catch (e) {
+          console.error('Failed to parse citations:', e);
+        }
+      }
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: result.data || 'No response received',
+        content,
         role: 'assistant',
-        timestamp: new Date()
+        timestamp: new Date(),
+        citations
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -139,7 +155,7 @@ export default function Home() {
 
 
   return (
-    <div>
+    <div className="pb-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-[350px_1fr] gap-6 mobile-stack lg:h-[700px]">
           {/* Sidebar */}

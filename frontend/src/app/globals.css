@@ -118,6 +118,47 @@ body {
   background: var(--cc-primary-end);
 }
 
+/* Markdown content styling for chat messages */
+.markdown-content {
+  line-height: 1.6;
+}
+
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child,
+.markdown-content p:first-child {
+  margin-top: 0;
+}
+
+.markdown-content h1:last-child,
+.markdown-content h2:last-child,
+.markdown-content h3:last-child,
+.markdown-content p:last-child,
+.markdown-content ul:last-child,
+.markdown-content ol:last-child,
+.markdown-content blockquote:last-child {
+  margin-bottom: 0;
+}
+
+/* Code syntax highlighting for common languages */
+.markdown-content pre code {
+  color: #1a202c;
+}
+
+.markdown-content pre code .keyword {
+  color: #d73a49;
+  font-weight: 600;
+}
+
+.markdown-content pre code .string {
+  color: #032f62;
+}
+
+.markdown-content pre code .comment {
+  color: #6a737d;
+  font-style: italic;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 1024px) {
   .mobile-stack {
@@ -139,5 +180,25 @@ body {
   .mobile-mx-4 {
     margin-left: 1rem;
     margin-right: 1rem;
+  }
+  
+  /* Responsive markdown content */
+  .markdown-content pre {
+    font-size: 12px;
+    padding: 0.75rem;
+  }
+  
+  .markdown-content table {
+    font-size: 14px;
+  }
+  
+  /* Mobile footer adjustments */
+  footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  footer p {
+    font-size: 12px;
   }
 }
