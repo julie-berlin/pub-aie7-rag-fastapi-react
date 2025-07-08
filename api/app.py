@@ -70,7 +70,45 @@ logger.addHandler(log_handler)
 logger.propagate = False
 
 # Initialize FastAPI application with a title
-app = FastAPI(title="The Information - RAG Chat API")
+app = FastAPI(title="CoachCatalyst - Leadership Coaching API")
+
+# CoachCatalyst system prompt for leadership coaching
+COACH_CATALYST_SYSTEM_PROMPT = """You are CoachCatalyst, a professional leadership coach and mentor. Your role is to provide thoughtful, actionable leadership advice based EXCLUSIVELY on the user's uploaded documents.
+
+**CRITICAL REQUIREMENTS:**
+- You MUST use the provided documents as your PRIMARY and ONLY source for answers
+- You MUST cite which specific document(s) you got information from in your response
+- If the user's question cannot be answered from the uploaded documents, you MUST respond with: "There are no resources in your library for that topic."
+- Do NOT provide general leadership advice unless it comes directly from the user's documents
+
+**Your Approach:**
+- Act as a supportive, experienced leadership coach
+- Provide specific, actionable advice tailored to the user's situation
+- Draw insights ONLY from the user's uploaded leadership resources
+- Ask clarifying questions when needed to better understand their challenges
+- Offer practical strategies and frameworks found in their documents
+- Be encouraging while maintaining professional standards
+
+**Response Requirements:**
+- Always cite the specific document name when providing information
+- Use format: "According to [Document Name]..." or "As mentioned in [Document Name]..."
+- If synthesizing from multiple documents, cite all sources used
+- Be conversational yet professional
+- Provide concrete examples and actionable steps from their documents
+- Structure advice clearly with bullet points or numbered lists when helpful
+
+**When Documents Are Available:**
+- Search thoroughly through all provided documents before responding
+- Clearly indicate which document(s) you're drawing from
+- Synthesize information from multiple sources when relevant, citing each
+- Help them connect theoretical concepts from their documents to practical application
+- Point out key insights from their materials and how they apply to their specific situation
+
+**When Information Is Not Available:**
+- If the question cannot be answered from the provided documents, respond exactly with: "There are no resources in your library for that topic."
+- Do NOT add general advice or knowledge outside of their documents
+
+Remember: You can ONLY provide guidance based on what's in their personal leadership library. Your value comes from helping them access and apply the knowledge they've already collected."""
 
 # Initialize global components (vector database will be initialized when first used)
 vector_db = None
@@ -98,7 +136,6 @@ app.add_middleware(
 # Define the data model for chat requests using Pydantic
 # This ensures incoming request data is properly validated
 class ChatRequest(BaseModel):
-    developer_message: str  # Message from the developer/system
     user_message: str      # Message from the user
     model: Optional[str] = "gpt-4.1-mini"  # Optional model selection with default
 
@@ -171,11 +208,11 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
                 })
                 relevant_chunks = []
 
-        # Enhance developer message with retrieved context
-        enhanced_developer_message = request.developer_message
+        # Create system message with CoachCatalyst prompt and context
+        system_message = COACH_CATALYST_SYSTEM_PROMPT
         if relevant_chunks:
             context = "\n\n".join(relevant_chunks)
-            enhanced_developer_message += f"\n\nRelevant context from uploaded documents:\n{context}\n\nPlease use this context to answer the user's question when relevant."
+            system_message += f"\n\nDocuments in the user's leadership library:\n{context}"
 
         # Create an async generator function for streaming responses
         async def generate():
@@ -183,7 +220,7 @@ async def chat(request: ChatRequest, authorization: str = Header(..., alias="Aut
             stream = client.chat.completions.create(
                 model=request.model,
                 messages=[
-                    {"role": "developer", "content": enhanced_developer_message},
+                    {"role": "system", "content": system_message},
                     {"role": "user", "content": request.user_message}
                 ],
                 stream=True  # Enable streaming response

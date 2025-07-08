@@ -96,7 +96,6 @@ export async function apiClient<T = unknown>({
  * Helper function specifically for chat requests
  */
 export async function chatRequest(
-  developerMessage: string,
   userMessage: string,
   apiKey: string,
   model?: string
@@ -104,7 +103,6 @@ export async function chatRequest(
   return apiClient<string>({
     endpoint: '/api/chat',
     body: {
-      developer_message: developerMessage,
       user_message: userMessage,
       model: model || 'gpt-4.1-mini'
     },

@@ -8,6 +8,7 @@ import ChatHistory from './components/ChatHistory';
 import ChatInputForm from './components/ChatInputForm';
 import Notification from './components/Notification';
 
+
 interface Message {
   id: string;
   content: string;
@@ -146,11 +147,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.id));
-      const context = selectedDocs.map(doc => `Document: ${doc.name}\n${doc.content}`).join('\n\n');
-
       const result = await chatRequest(
-        `You are a helpful assistant. Use the following documents as context to answer questions: ${context}`,
         userMessage.content,
         apiKey
       );
