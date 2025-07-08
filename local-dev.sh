@@ -30,7 +30,7 @@ fi
 # Start FastAPI backend using uv
 echo "Starting FastAPI backend on http://localhost:8000"
 cd "$SCRIPT_DIR/api"
-uv run python app.py > ../backend.log 2>&1 &
+uvicorn api.app:app --reload > ../backend.log 2>&1 &
 BACKEND_PID=$!
 echo "Backend started with PID: $BACKEND_PID"
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Header from './components/Header';
+import Footer from './components/Footer';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Information",
-  description: "AI-powered knowledge base chat application",
+  title: "Coach Catalyst",
+  description: "AI-powered leadership library",
 };
 
 export default function RootLayout({
@@ -27,15 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <header className="bg-gray-900 text-white p-4">
-          <h1 className="text-2xl font-bold">The Information</h1>
-        </header>
+        <Header />
         <main className="flex-1">
           {children}
         </main>
-        <footer className="bg-gray-100 text-gray-600 p-4 text-center border-t">
-          <p className="text-sm">Note: This is a proof of concept. LLMs can make mistakes.</p>
-        </footer>
+        <Footer />
       </body>
     </html>
   );

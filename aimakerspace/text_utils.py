@@ -1,6 +1,7 @@
 import os
 from typing import List
 import PyPDF2
+import docx
 
 
 class TextFileLoader:
@@ -75,15 +76,15 @@ class PDFLoader:
         print(f"Is file: {os.path.isfile(self.path)}")
         print(f"Is directory: {os.path.isdir(self.path)}")
         print(f"File permissions: {oct(os.stat(self.path).st_mode)[-3:]}")
-        
+
         try:
             # Try to open the file first to verify access
             with open(self.path, 'rb') as test_file:
                 pass
-            
+
             # If we can open it, proceed with loading
             self.load_file()
-            
+
         except IOError as e:
             raise ValueError(f"Cannot access file at '{self.path}': {str(e)}")
         except Exception as e:
@@ -93,12 +94,12 @@ class PDFLoader:
         with open(self.path, 'rb') as file:
             # Create PDF reader object
             pdf_reader = PyPDF2.PdfReader(file)
-            
+
             # Extract text from each page
             text = ""
             for page in pdf_reader.pages:
                 text += page.extract_text() + "\n"
-            
+
             self.documents.append(text)
 
     def load_directory(self):
@@ -108,13 +109,47 @@ class PDFLoader:
                     file_path = os.path.join(root, file)
                     with open(file_path, 'rb') as f:
                         pdf_reader = PyPDF2.PdfReader(f)
-                        
+
                         # Extract text from each page
                         text = ""
                         for page in pdf_reader.pages:
                             text += page.extract_text() + "\n"
-                        
+
                         self.documents.append(text)
+
+    def load_documents(self):
+        self.load()
+        return self.documents
+
+
+class WordDocLoader:
+    def __init__(self, path: str):
+        self.documents = []
+        self.path = path
+
+    def load(self):
+        if os.path.isdir(self.path):
+            self.load_directory()
+        elif os.path.isfile(self.path) and (self.path.endswith(".docx") or self.path.endswith(".doc")):
+            self.load_file()
+        else:
+            raise ValueError(
+                "Provided path is neither a valid directory nor a .doc/.docx file."
+            )
+
+    def load_file(self):
+        doc = docx.Document(self.path)
+        text = "\n".join([para.text for para in doc.paragraphs])
+        self.documents.append(text)
+
+    def load_directory(self):
+        for root, _, files in os.walk(self.path):
+            for file in files:
+                if file.endswith(".docx") or file.endswith(".doc"):
+                    file_path = os.path.join(root, file)
+                    doc = docx.Document(file_path)
+                    text = "\n".join([para.text for para in doc.paragraphs])
+                    self.documents.append(text)
 
     def load_documents(self):
         self.load()

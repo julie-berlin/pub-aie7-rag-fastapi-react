@@ -1,6 +1,6 @@
 # Project Plan
 
-This application is called "the information" as a bare bones way to get the information you need from your docs.
+This application is called "CoachCatalyst" as a bare bones way to get the information you need from your docs.
 
 ## Features
 
@@ -18,7 +18,7 @@ The user flow is:
 The backend flow is:
 
 - PDF provided by user is indexed and passed to a simple RAG application that leverages the `aimakerspace` library
-- Chat query history is saved until user deletes it
+- OpenAI API calls for responses after context retrieved from in-memory vector store
 
 Constraints
 

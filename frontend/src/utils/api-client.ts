@@ -11,7 +11,7 @@ interface ApiClientResponse<T = unknown> {
   ok: boolean;
 }
 
-interface PdfUploadResponse {
+interface FileUploadResponse {
   message: string;
   chunks_created: number;
   filename: string;
@@ -53,7 +53,7 @@ export async function apiClient<T = unknown>({
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API Error (${response.status}):`, errorText);
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         return {
@@ -96,7 +96,6 @@ export async function apiClient<T = unknown>({
  * Helper function specifically for chat requests
  */
 export async function chatRequest(
-  developerMessage: string,
   userMessage: string,
   apiKey: string,
   model?: string
@@ -104,7 +103,6 @@ export async function chatRequest(
   return apiClient<string>({
     endpoint: '/api/chat',
     body: {
-      developer_message: developerMessage,
       user_message: userMessage,
       model: model || 'gpt-4.1-mini'
     },
@@ -113,15 +111,38 @@ export async function chatRequest(
 }
 
 /**
- * Helper function specifically for PDF upload requests
+ * Helper function for file upload requests (supports PDF, Word, text, and markdown files)
  */
-export async function uploadPdfRequest(file: File, apiKey: string): Promise<ApiClientResponse<PdfUploadResponse>> {
+export async function uploadFileRequest(file: File, apiKey: string): Promise<ApiClientResponse<FileUploadResponse>> {
   const formData = new FormData();
   formData.append('file', file);
 
-  return apiClient<PdfUploadResponse>({
-    endpoint: '/api/upload-pdf',
+  return apiClient<FileUploadResponse>({
+    endpoint: '/api/upload',
     body: formData,
     apiKey
+  });
+}
+
+/**
+ * Helper function to clear the vector database
+ */
+export async function clearDatabaseRequest(): Promise<ApiClientResponse<{message: string; status: string}>> {
+  return apiClient<{message: string; status: string}>({
+    endpoint: '/api/clear',
+    method: 'POST',
+    apiKey: 'dummy' // Clear endpoint doesn't require API key
+  });
+}
+
+/**
+ * Helper function to delete vectors for a specific document
+ */
+export async function deleteDocumentRequest(documentName: string): Promise<ApiClientResponse<{message: string; status: string; deleted_count: number}>> {
+  return apiClient<{message: string; status: string; deleted_count: number}>({
+    endpoint: '/api/delete-document',
+    method: 'POST',
+    body: { document_name: documentName },
+    apiKey: 'dummy' // Delete endpoint doesn't require API key
   });
 }
