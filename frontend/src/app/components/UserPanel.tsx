@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { uploadFileRequest } from '@/utils/api-client';
 
 interface Document {
   id: string;
@@ -8,38 +9,121 @@ interface Document {
 }
 
 interface UserPanelProps {
-  apiKey: string;
-  setApiKey: (value: string) => void;
-  documents: Document[];
-  selectedDocuments: string[];
-  setSelectedDocuments: (ids: string[]) => void;
-  handleFileUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleFile: (file: File) => Promise<void>;
-  handleClearDocuments: () => void;
-  handleDeleteDocument: (docId: string) => void;
-  fileInputRef: React.RefObject<HTMLInputElement> | React.RefObject<HTMLInputElement | null>;
-  isDragActive: boolean;
-  setIsDragActive: (active: boolean) => void;
-  handleDrop: (event: React.DragEvent<HTMLDivElement>) => Promise<void>;
-  handleDragOver: (event: React.DragEvent<HTMLDivElement>) => void;
-  handleDragLeave: (event: React.DragEvent<HTMLDivElement>) => void;
+  onApiKeyChange: (apiKey: string) => void;
+  onDocumentsChange: (documents: Document[], selectedDocuments: string[]) => void;
+  onNotification: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 const UserPanel: React.FC<UserPanelProps> = ({
-  apiKey,
-  setApiKey,
-  documents,
-  selectedDocuments,
-  setSelectedDocuments,
-  handleFileUpload,
-  handleClearDocuments,
-  handleDeleteDocument,
-  fileInputRef,
-  isDragActive,
-  handleDrop,
-  handleDragOver,
-  handleDragLeave
+  onApiKeyChange,
+  onDocumentsChange,
+  onNotification
 }) => {
+  // Internal state
+  const [apiKey, setApiKey] = useState('');
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([]);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Notify parent of changes
+  const handleApiKeyChange = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    onApiKeyChange(newApiKey);
+  };
+
+  const handleDocumentsChange = (newDocuments: Document[], newSelectedDocuments: string[]) => {
+    setDocuments(newDocuments);
+    setSelectedDocuments(newSelectedDocuments);
+    onDocumentsChange(newDocuments, newSelectedDocuments);
+  };
+
+  const handleSelectedDocumentsChange = (newSelectedDocuments: string[]) => {
+    setSelectedDocuments(newSelectedDocuments);
+    onDocumentsChange(documents, newSelectedDocuments);
+  };
+
+  // File handling
+  const handleFile = async (file: File) => {
+    if (
+      file.type !== 'text/plain' &&
+      file.type !== 'application/pdf' &&
+      file.type !== 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
+      file.type !== 'application/msword' &&
+      file.type !== 'text/markdown'
+    ) {
+      onNotification('Please upload only text, markdown, PDF, or Word files', 'error');
+      return;
+    }
+
+    try {
+      const result = await uploadFileRequest(file, apiKey);
+      if (!result.ok) {
+        throw new Error(result.error || 'Upload failed');
+      }
+      const chunksCreated = result.data?.chunks_created || 0;
+      let docType: Document['type'] = 'text';
+      if (file.type === 'application/pdf') docType = 'pdf';
+      else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/msword') docType = 'word';
+
+      const newDoc: Document = {
+        id: Date.now().toString(),
+        name: file.name,
+        type: docType,
+        content: `${file.name} uploaded and indexed (${chunksCreated} chunks)`
+      };
+
+      const newDocuments = [...documents, newDoc];
+      handleDocumentsChange(newDocuments, selectedDocuments);
+      onNotification(`Successfully uploaded ${file.name}. Created ${chunksCreated} chunks.`, 'success');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      onNotification(`Failed to upload file: ${errorMessage}`, 'error');
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await handleFile(file);
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragActive(false);
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+      await handleFile(files[0]);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDragActive(false);
+  };
+
+  const handleClearDocuments = () => {
+    if (documents.length === 0) {
+      onNotification('No documents to clear', 'info');
+      return;
+    }
+
+    const count = documents.length;
+    handleDocumentsChange([], []);
+    onNotification(`Cleared ${count} documents`, 'success');
+  };
+
+  const handleDeleteDocument = (docId: string) => {
+    const newDocuments = documents.filter(doc => doc.id !== docId);
+    const newSelectedDocuments = selectedDocuments.filter(id => id !== docId);
+    handleDocumentsChange(newDocuments, newSelectedDocuments);
+  };
   const getDocumentIcon = (type: Document['type']) => {
     switch (type) {
       case 'pdf':
@@ -62,8 +146,8 @@ const UserPanel: React.FC<UserPanelProps> = ({
 
   return (
     <div className="glass-card rounded-2xl p-6 space-y-6 ml-4 mt-4 lg:h-full lg:mt-0 flex flex-col">
-      <h3 className="text-lg font-semibold text-primary mb-5">Your Leadership Library</h3>
-      
+      <h3 className="text-lg font-semibold text-primary mb-5">Your Documents</h3>
+
       {/* Document Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="gradient-primary text-white p-4 rounded-xl text-center glass-card-hover">
@@ -85,7 +169,7 @@ const UserPanel: React.FC<UserPanelProps> = ({
           id="api-key"
           type="password"
           value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          onChange={(e) => handleApiKeyChange(e.target.value)}
           className="w-full px-3 py-2 border-2 border-blue-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white bg-opacity-50 text-primary placeholder-gray-400 transition-all duration-300"
           placeholder="Enter your OpenAI API key"
           aria-label="OpenAI API Key"
@@ -107,8 +191,8 @@ const UserPanel: React.FC<UserPanelProps> = ({
           onDragLeave={handleDragLeave}
           onDragEnd={handleDragLeave}
           className={`flex flex-col items-center justify-center border-2 border-dashed rounded-xl h-24 mb-4 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            isDragActive 
-              ? 'border-blue-500 bg-blue-50 bg-opacity-70' 
+            isDragActive
+              ? 'border-blue-500 bg-blue-50 bg-opacity-70'
               : 'border-blue-300 bg-blue-50 bg-opacity-30 hover:bg-opacity-50'
           }`}
         >
@@ -151,9 +235,9 @@ const UserPanel: React.FC<UserPanelProps> = ({
                       checked={selectedDocuments.includes(doc.id)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedDocuments([...selectedDocuments, doc.id]);
+                          handleSelectedDocumentsChange([...selectedDocuments, doc.id]);
                         } else {
-                          setSelectedDocuments(selectedDocuments.filter(id => id !== doc.id));
+                          handleSelectedDocumentsChange(selectedDocuments.filter(id => id !== doc.id));
                         }
                       }}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"

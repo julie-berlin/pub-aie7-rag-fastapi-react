@@ -4,27 +4,10 @@ import { describe, it, expect, vi } from 'vitest';
 import UserPanel from '../UserPanel';
 
 describe('UserPanel', () => {
-  const documents = [
-    { id: '1', name: 'Doc1.txt', type: 'text', content: 'Content' },
-    { id: '2', name: 'Doc2.pdf', type: 'pdf', content: 'Content' },
-  ] as const;
-
   const defaultProps = {
-    apiKey: '',
-    setApiKey: vi.fn(),
-    documents: [...documents],
-    selectedDocuments: [],
-    setSelectedDocuments: vi.fn(),
-    handleFileUpload: vi.fn(),
-    handleFile: vi.fn(),
-    handleNewChat: vi.fn(),
-    handleDeleteDocument: vi.fn(),
-    fileInputRef: { current: null },
-    isDragActive: false,
-    setIsDragActive: vi.fn(),
-    handleDrop: vi.fn(),
-    handleDragOver: vi.fn(),
-    handleDragLeave: vi.fn(),
+    onApiKeyChange: vi.fn(),
+    onDocumentsChange: vi.fn(),
+    onNotification: vi.fn(),
   };
 
   it('renders API key input', () => {
@@ -37,14 +20,13 @@ describe('UserPanel', () => {
     expect(screen.getByLabelText(/drag and drop a file here/i)).toBeInTheDocument();
   });
 
-  it('renders document list', () => {
+  it('renders empty document state', () => {
     render(<UserPanel {...defaultProps} />);
-    expect(screen.getByText('Doc1.txt')).toBeInTheDocument();
-    expect(screen.getByText('Doc2.pdf')).toBeInTheDocument();
+    expect(screen.getByText('No documents uploaded yet')).toBeInTheDocument();
   });
 
-  it('renders new chat button', () => {
+  it('renders clear documents button', () => {
     render(<UserPanel {...defaultProps} />);
-    expect(screen.getByRole('button', { name: /new chat/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /clear all documents/i })).toBeInTheDocument();
   });
 });
