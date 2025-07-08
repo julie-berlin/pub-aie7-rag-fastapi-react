@@ -8,6 +8,7 @@ local-dev.sh
 # docs
 docs/
 prompts/
+library/
 
 # AI assist
 .claude/
