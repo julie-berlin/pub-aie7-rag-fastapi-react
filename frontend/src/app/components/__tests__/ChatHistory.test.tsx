@@ -12,19 +12,19 @@ describe('ChatHistory', () => {
 
   it('renders messages', () => {
     const messages = [
-      { id: '1', content: 'Hello', role: 'user' as 'user', timestamp: new Date() },
-      { id: '2', content: 'Hi there!', role: 'assistant' as 'assistant', timestamp: new Date() },
-    ];
-    render(<ChatHistory messages={messages} isLoading={false} />);
+      { id: '1', content: 'Hello', role: 'user', timestamp: new Date() },
+      { id: '2', content: 'Hi there!', role: 'assistant', timestamp: new Date() },
+    ] as const;
+    render(<ChatHistory messages={[...messages]} isLoading={false} />);
     expect(screen.getByText('Hello')).toBeInTheDocument();
     expect(screen.getByText('Hi there!')).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
     const messages = [
-      { id: '1', content: 'Hello', role: 'user' as 'user', timestamp: new Date() }
-    ];
-    render(<ChatHistory messages={messages} isLoading={true} />);
+      { id: '1', content: 'Hello', role: 'user', timestamp: new Date() },
+    ] as const;
+    render(<ChatHistory messages={[...messages]} isLoading={true} />);
     expect(screen.getByText(/thinking/i)).toBeInTheDocument();
   });
 });

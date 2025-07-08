@@ -1,16 +1,18 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import UserPanel from '../UserPanel';
 
 describe('UserPanel', () => {
+  const documents = [
+    { id: '1', name: 'Doc1.txt', type: 'text', content: 'Content' },
+    { id: '2', name: 'Doc2.pdf', type: 'pdf', content: 'Content' },
+  ] as const;
+
   const defaultProps = {
     apiKey: '',
     setApiKey: vi.fn(),
-    documents: [
-      { id: '1', name: 'Doc1.txt', type: 'text' as 'text', content: 'Content' },
-      { id: '2', name: 'Doc2.pdf', type: 'pdf' as 'pdf', content: 'Content' },
-    ],
+    documents: [...documents],
     selectedDocuments: [],
     setSelectedDocuments: vi.fn(),
     handleFileUpload: vi.fn(),
