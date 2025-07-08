@@ -61,10 +61,10 @@ class StructuredFormatter(logging.Formatter):
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Create handler with structured formatter
-handler = logging.StreamHandler()
-handler.setFormatter(StructuredFormatter())
-logger.addHandler(handler)
+# Create logging handler with structured formatter
+log_handler = logging.StreamHandler()
+log_handler.setFormatter(StructuredFormatter())
+logger.addHandler(log_handler)
 
 # Prevent duplicate logs
 logger.propagate = False
