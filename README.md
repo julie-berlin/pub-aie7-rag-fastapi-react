@@ -27,11 +27,11 @@ Complete the Homework Form!
 ## Business Case
 
 - **Problem:** (Write a 1 sentence description of the problem you're trying to solve)
-why Write a paragraph about why this is a problem worth solving. To the company, to the world, to you!
-success Write 1-2 sentences about what success looks like. What is the Key Performance Indicator?
-audience Specify the user/stakeholder/customer that this product is for. What is their pain point or need that connects back to the problem?
-potential solution Briefly describe data that you might use and the modeling techniques that you plan to leverage.
-sharing What community (or company) do you plan on sharing your project in?
+- **Why** Write a paragraph about why this is a problem worth solving. To the company, to the world, to you!
+- **Success** Write 1-2 sentences about what success looks like. What is the Key Performance Indicator?
+- **Audience** Specify the user/stakeholder/customer that this product is for. What is their pain point or need that connects back to the problem?
+- **Potential solution** Briefly describe data that you might use and the modeling techniques that you plan to leverage.
+- **Sharing** What community (or company) do you plan on sharing your project in?
 
 
 AI Makerspace Bootcamp Cohort #7

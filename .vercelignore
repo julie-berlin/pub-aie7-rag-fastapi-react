@@ -3,6 +3,14 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.local-dev.sh
+
+# docs
+docs/
+
+# AI assist
+.claude/
+.cursor/
 
 # Python cache
 __pycache__/
