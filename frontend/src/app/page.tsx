@@ -2,8 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { chatRequest, uploadPdfRequest } from '@/utils/api-client';
-import Header from './components/Header';
-import Footer from './components/Footer';
+
 import UserPanel from './components/UserPanel';
 import ChatHistory from './components/ChatHistory';
 import ChatInputForm from './components/ChatInputForm';
@@ -151,7 +150,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
@@ -190,7 +188,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <Footer />
     </div>
   );
 }
